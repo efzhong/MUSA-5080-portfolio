@@ -35,11 +35,9 @@ sessionInfo()$R.version$version.string
 
 <!-- CHANGE THIS: 3-4 sentences -->
 
-What I want out of this course:
-
-One thing I'm nervous about:
+I'm excited to utilize R in my research projects and to build on my programming experience. I'm looking forward to seeing what tools and platforms emerge from our class at the end of the semester. I'm a little nervous about keeping up with the terminology and logic, but I'm sure it will just take practice. Forming study groups could be a good idea. 
 
 ## Questions I Still Have
 
--
--
+- What ways can I get creative with my web design?
+- I'm interested in seeing how we code maps in. 
