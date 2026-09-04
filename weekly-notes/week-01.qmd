@@ -37,6 +37,10 @@ sessionInfo()$R.version$version.string
 
 I'm excited to utilize R in my research projects and to build on my programming experience. I'm looking forward to seeing what tools and platforms emerge from our class at the end of the semester. I'm a little nervous about keeping up with the terminology and logic, but I'm sure it will just take practice. Forming study groups could be a good idea. 
 
+## What I've Learned 
+
+I'm learning to understand these file types as different pathways to the object I want to find. Understanding .qmd or .yml means that I'll have a better idea of where to locate my target and how I should write my code around it. 
+
 ## Questions I Still Have
 
 - What ways can I get creative with my web design?

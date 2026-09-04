@@ -117,5 +117,12 @@
     "title": "",
     "section": "",
     "text": "Code\n\n\n\n\nData files for MUSA 5080\nDownload assignment data from Canvas and save it here. Do not rename the files! Have a nice day :)"
+  },
+  {
+    "objectID": "weekly-notes/week-01.html#what-ive-learned",
+    "href": "weekly-notes/week-01.html#what-ive-learned",
+    "title": "Week 1: Getting Set Up",
+    "section": "What I’ve Learned",
+    "text": "What I’ve Learned\nI’m learning to understand these file types as different pathways to the object I want to find. Understanding .qmd or .yml means that I’ll have a better idea of where to locate my target and how I should write my code around it."
   }
 ]
