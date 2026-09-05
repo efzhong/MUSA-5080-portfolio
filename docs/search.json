@@ -88,7 +88,7 @@
     "href": "assignments/index.html",
     "title": "Assignments",
     "section": "",
-    "text": "Completed assignments for MUSA 5080. New assignments appear here automatically once you add the .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\nNo matching items"
+    "text": "Completed assignments for MUSA 5080. New assignments appear here automatically once you add the .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\n\nAssignment 2: Who Do We Know the Least About?\n\n\n\n\n\n\n\n\nSep 5, 2026\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "index.html",
@@ -173,5 +173,68 @@
     "title": "Week 2: dplyr and Census",
     "section": "Questions I Still Have",
     "text": "Questions I Still Have"
+  },
+  {
+    "objectID": "assignments/assignment2 .html",
+    "href": "assignments/assignment2 .html",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(tidycensus)"
+  },
+  {
+    "objectID": "assignments/assignment2 .html#setup",
+    "href": "assignments/assignment2 .html#setup",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(tidycensus)"
+  },
+  {
+    "objectID": "assignments/assignment2 .html#the-question",
+    "href": "assignments/assignment2 .html#the-question",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "The question",
+    "text": "The question\nEvery number the American Community Survey publishes is an estimate drawn from a sample, not a count. That means every number comes with a margin of error — a statement about how wrong it might be.\nMost people ignore it. In this assignment, you won’t.\nIn this analysis, I look at how many households that received SNAP assistance with income were below poverty levels in the past 12 months across counties in California, and ask which communities we measure most and least reliably."
+  },
+  {
+    "objectID": "assignments/assignment2 .html#choosing-what-to-measure",
+    "href": "assignments/assignment2 .html#choosing-what-to-measure",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "Choosing what to measure",
+    "text": "Choosing what to measure\n\nmy_state &lt;- \"CA\"                # two-letter abbreviation, in quotes\nmy_variable &lt;- \"B22003_003\"     # the variable code, in quotes\nmy_state\n\n[1] \"CA\"\n\nmy_variable\n\n[1] \"B22003_003\"\n\n## Pulling the data\n\n\ncounty_data &lt;- get_acs(\n  geography = \"county\",\n  variables = my_variable,\n  state = my_state,\n  year = 2023,\n  survey = \"acs5\"\n)\n\nLet’s look at what came back.\n\ndim(county_data)\n\n[1] 58  5\n\nhead(county_data)\n\n# A tibble: 6 × 5\n  GEOID NAME                         variable   estimate   moe\n  &lt;chr&gt; &lt;chr&gt;                        &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt;\n1 06001 Alameda County, California   B22003_003    18830  1141\n2 06003 Alpine County, California    B22003_003       14    11\n3 06005 Amador County, California    B22003_003      525   225\n4 06007 Butte County, California     B22003_003     5768   579\n5 06009 Calaveras County, California B22003_003      556   207\n6 06011 Colusa County, California    B22003_003      315   135\n\n\nCalifornia has 58 counties, and dim(county_data) returns 58 rows."
+  },
+  {
+    "objectID": "assignments/assignment2 .html#how-big-is-the-margin-of-error",
+    "href": "assignments/assignment2 .html#how-big-is-the-margin-of-error",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "How big is the margin of error?",
+    "text": "How big is the margin of error?\nA margin of error of 3,000 means something very different for an estimate of 20,000 than for an estimate of 200,000. To compare across places, we need it as a percentage.\n\ncounty_data &lt;- county_data %&gt;%\n  mutate(moe_pct = moe / estimate * 100)\n\nNow sort to see which counties are measured least reliably.\n\ncounty_data %&gt;%\n  arrange(desc(moe_pct)) %&gt;%\n  select(NAME, estimate, moe, moe_pct) %&gt;%\n  head(10)\n\n# A tibble: 10 × 4\n   NAME                          estimate   moe moe_pct\n   &lt;chr&gt;                            &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;\n 1 Sierra County, California           13    17   131. \n 2 Mono County, California            104   101    97.1\n 3 Alpine County, California           14    11    78.6\n 4 Trinity County, California         161    95    59.0\n 5 Plumas County, California          378   192    50.8\n 6 Modoc County, California           225    98    43.6\n 7 Glenn County, California           296   127    42.9\n 8 Amador County, California          525   225    42.9\n 9 Colusa County, California          315   135    42.9\n10 San Benito County, California      447   190    42.5\n\n\nThe least reliable county appears to be Sierra County, California with a moe_pct of 130.8%. The margin of error is larger than the estimate itself so the true number of poverty-level SNAP households is obscured."
+  },
+  {
+    "objectID": "assignments/assignment2 .html#sorting-counties-into-reliability-categories",
+    "href": "assignments/assignment2 .html#sorting-counties-into-reliability-categories",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "Sorting counties into reliability categories",
+    "text": "Sorting counties into reliability categories\n\ncounty_data &lt;- county_data %&gt;%\n  mutate(reliability = case_when(\n    moe_pct &lt; 5  ~ \"High confidence\",\n    moe_pct &lt; 10 ~ \"Moderate\",\n    TRUE         ~ \"Low confidence\"\n  ))\n\ncount(county_data, reliability)\n\n# A tibble: 3 × 2\n  reliability         n\n  &lt;chr&gt;           &lt;int&gt;\n1 High confidence     3\n2 Low confidence     41\n3 Moderate           14\n\n\n\nsummary(county_data$moe_pct)\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n  1.600   9.117  14.917  23.245  27.842 130.769 \n\ncounty_data &lt;- county_data %&gt;%\n  mutate(reliability = case_when(\n    moe_pct &lt; 10 ~ \"High confidence\",\n    moe_pct &lt; 25 ~ \"Moderate\",\n    TRUE         ~ \"Low confidence\"\n  ))\n  \ncount(county_data, reliability)\n\n# A tibble: 3 × 2\n  reliability         n\n  &lt;chr&gt;           &lt;int&gt;\n1 High confidence    17\n2 Low confidence     16\n3 Moderate           25\n\n\nI set the cutoffs at 10% and 25% instead of the default 5% and 10%, based on the quantiles. The original thresholds pushed 41 of 58 counties into “Low confidence”, but these new cutoffs roughly split counties into thirds. I chose 10 and 25 because it was closer to the actual quartiles and I played around with the numbers to test it out. It’s worth noting that the distribution is right-skewed with a small number of very small counties like Sierra County pulling the average up."
+  },
+  {
+    "objectID": "assignments/assignment2 .html#is-the-margin-of-error-bigger-in-small-places",
+    "href": "assignments/assignment2 .html#is-the-margin-of-error-bigger-in-small-places",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "Is the margin of error bigger in small places?",
+    "text": "Is the margin of error bigger in small places?\nTo answer this we need population and our variable side by side, in the same row. That means a wide pull.\n\ncounty_wide &lt;- get_acs(\n  geography = \"county\",\n  variables = c(myvar = my_variable,\n                pop   = \"B01003_001\"),\n  state = my_state,\n  year = 2023,\n  survey = \"acs5\",\n  output = \"wide\"\n)\n\nhead(county_wide)\n\n# A tibble: 6 × 6\n  GEOID NAME                         myvarE myvarM    popE  popM\n  &lt;chr&gt; &lt;chr&gt;                         &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;\n1 06001 Alameda County, California    18830   1141 1651949    NA\n2 06003 Alpine County, California        14     11    1695   234\n3 06005 Amador County, California       525    225   41029    NA\n4 06007 Butte County, California       5768    579  209470    NA\n5 06009 Calaveras County, California    556    207   45995    NA\n6 06011 Colusa County, California       315    135   21895    NA\n\n\n\ncounty_wide &lt;- county_wide %&gt;%\n  mutate(moe_pct = myvarM / myvarE * 100) %&gt;%\n  mutate(reliability = case_when(\n    moe_pct &lt; 5  ~ \"High confidence\",\n    moe_pct &lt; 15 ~ \"Moderate\",\n    TRUE         ~ \"Low confidence\"\n  ))\n\nNow compare the average population of counties in each reliability category.\n\ncounty_wide %&gt;%\n  group_by(reliability) %&gt;%\n  summarize(\n    n_counties = n(),\n    avg_population = mean(popE)\n  )\n\n# A tibble: 3 × 3\n  reliability     n_counties avg_population\n  &lt;chr&gt;                &lt;int&gt;          &lt;dbl&gt;\n1 High confidence          3       5193699 \n2 Low confidence          29         93740.\n3 Moderate                26        805508.\n\n\nHigh confidence counties have an average population of around 5.2 million, compared to roughly 94,000 for lower confidence counties. Larger populations have larger ACS samples which help to produce smaller relative margins of error. Reliable SNAP-poverty estimates are likely only available for three of California ’s largest counties."
+  },
+  {
+    "objectID": "assignments/assignment2 .html#what-this-means-for-policy",
+    "href": "assignments/assignment2 .html#what-this-means-for-policy",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "What this means for policy",
+    "text": "What this means for policy\nThe communities in California that we know least about include: Sierra, Mono, Alpine, Trinity, Plumas, Modoc, Glenn, Amador, Colusa, and San Benito. Sierra has a margin of error percentage of 130.8%, indicating that the estimate of 13 households has a margin of error larger than the number itself.\nThe communities of Mono and Alpine are also in the lower confidence bracket, likely due to the relatively lower average population. Communities with a higher average population place higher in confidence levels. The ACS is an ongoing sample survey across five years to build the estimates that we examine. Only a select few households are sampled for a given area, but the number of households with data increases as the population count rises. Los Angeles County will have more samples when compared to Sierra County, because the latter will have only a handful of survey respondents that even fall into the subpopulation of households with SNAP and below the poverty level.\nIf every county’s number were to be treated as equally certain during funding allocation, smaller counties are likely to feel greater harm because these estimates are sensitive to sampling noise. Year to year, the numbers for a large population county like Los Angeles will budge slightly because the sample is large enough to average out the noise. However, a small county’s number is more likely to swing which could affect their funding despite need still being great."
+  },
+  {
+    "objectID": "assignments/assignment2 .html#before-you-submit",
+    "href": "assignments/assignment2 .html#before-you-submit",
+    "title": "Assignment 2: Who Do We Know the Least About?",
+    "section": "Before you submit",
+    "text": "Before you submit\n\n\n\n\n\n\nNoteDelete this box — checklist\n\n\n\n\nYour name is in the YAML header\nEvery instruction callout is deleted\n[x ] Every [bracketed prompt] is replaced with your own writing\nNo ___ blanks remain anywhere\nThe file is at assignments/assignment2.qmd\nSession → Restart R, then render the whole project. It works.\nCommitted and pushed\nYou opened your live site and looked at the published page"
   }
 ]
