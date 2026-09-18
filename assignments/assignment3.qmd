@@ -1,6 +1,5 @@
 ---
-title: "Assignment 3: Verify the Claim"
-subtitle: "Testing a published claim about neighborhood change against the data behind it"
+title: "Verify the Claim: Changing poverty rates in Philadelphia's Neighborhoods"
 author: "Evelyn Zhong"
 date: today
 format:
