@@ -20,7 +20,7 @@ library(tidycensus)
 library(gt)
 ```
 
----
+
 
 ## The question
 
@@ -28,7 +28,7 @@ library(gt)
 
 **Since the article does not specify which tracts went into the neighborhood of Eastwick's analysis, I pulled poverty rate data for every census tract in Philadelphia County and checked where a tract-level increase on the scale the article reports (14%) falls relative to the rest of the city, instead of assuming my own boundaries for Eastwick. Thus, my analysis will focus on the magnitude of the claim and test whether an increase that large is exceptional somewhere in Philadelphia, but it cannot confirm that the tract producing the largest increase is actually in the article's Eastwick. The two periods of 2006–10 and 2013–17 do not share underlying survey years which provides a better before and after comparison. Any statistically significant difference will reflect real change over time.**
 
----
+
 
 ## Pulling data
 ```{r}
@@ -54,7 +54,7 @@ phl_poverty <- bind_rows(
   get_phl_poverty(2017)
 )
 ```
----
+
 ## Part 2 Check for missing values
 ```{r}
 #| echo: false
@@ -63,7 +63,7 @@ phl_poverty %>%
   select(GEOID, NAME, period, totalE)
 ```
 **Eight of Philadelphia's 384 census tracts produced an undefined poverty rate in at least one period since their total population for whom poverty status is determined was zero. Several are non-residential, such as tract 42101005000 (the Philadelphia Navy Yard) and tracts 42101980300–42101980900 (Philadelphia International Airport and the John Heinz National Wildlife Refuge). Tract 42101980600, had a defined rate in 2006–10 but not 2013–17, suggesting its population dropped to zero between the two periods. All eight were excluded, since the poverty rate would have no population to compute it from. To find this, I used is.na() to find these tracts to flag while also examining the tracts for more context.**
----
+
 
 ## Computing change 
 ```{r}
@@ -169,7 +169,7 @@ phl_tested %>%
      x = "Change in poverty rate (percentage points)", y = "z-score")
 ```
 **Instead of just the top 15, it shows all 376 tracts at once, plotting each one's change against its z-score. It demonstrates how common statistically detectable change actually is citywide. Most points sit clustered near the middle, with a clear minority crossing the ±1.645 lines.**
----
+
 **Verdict: Not Supported**
 **The claim that Eastwick posted "the greatest poverty-rate increase of any community" in Philadelphia is not supported. Because Eastwick's constituent tracts are not published, this analysis tested the claim's magnitude across every valid Philadelphia tract instead to find that 63 tracts show a statistically significant change. Some of the largest raw changes, however, come from tracts too small to produce a reliable estimate.**
 

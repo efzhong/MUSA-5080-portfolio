@@ -53,7 +53,7 @@
     "href": "weekly-notes/index.html",
     "title": "Weekly Notes",
     "section": "",
-    "text": "Notes from each week of MUSA 5080. New entries appear here automatically — add a .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\n\nWeek 2: dplyr and Census\n\n\nTable functions and ACS data.\n\n\n\n\n\nSep 4, 2026\n\n\n\n\n\n\n\nWeek 1: Getting Set Up\n\n\nFirst impressions, and getting the workflow running.\n\n\n\n\n\nAug 28, 2026\n\n\n\n\n\nNo matching items"
+    "text": "Notes from each week of MUSA 5080. New entries appear here automatically — add a .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\n\nWeek 2: dplyr and Census\n\n\nTable functions and ACS data.\n\n\n\n\n\nSep 4, 2026\n\n\n\n\n\n\n\nWeek 1: Getting Set Up\n\n\nFirst impressions, and getting the workflow running.\n\n\n\n\n\nAug 28, 2026\n\n\n\n\n\n\n\nWeek 1: Getting Set Up\n\n\nFirst impressions, and getting the workflow running.\n\n\n\n\n\nAug 28, 2026\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -88,7 +88,7 @@
     "href": "assignments/index.html",
     "title": "Assignments",
     "section": "",
-    "text": "Completed assignments for MUSA 5080. New assignments appear here automatically once you add the .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\n\nAssignment 2: Who Do We Know the Least About?\n\n\n\n\n\n\n\n\nSep 6, 2026\n\n\n\n\n\nNo matching items"
+    "text": "Completed assignments for MUSA 5080. New assignments appear here automatically once you add the .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\n\nAssignment 2: Who Do We Know the Least About?\n\n\n\n\n\n\n\n\nSep 17, 2026\n\n\n\n\n\n\n\nAssignment 3: Verify the Claim\n\n\n\n\n\n\n\n\nSep 17, 2026\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "index.html",
@@ -236,5 +236,103 @@
     "title": "Assignment 2: Who Do We Know the Least About?",
     "section": "Before you submit",
     "text": "Before you submit\n\n\n\n\n\n\nNoteDelete this box — checklist\n\n\n\n\nYour name is in the YAML header\nEvery instruction callout is deleted\n[x ] Every [bracketed prompt] is replaced with your own writing\nNo ___ blanks remain anywhere\nThe file is at assignments/assignment2.qmd\nSession → Restart R, then render the whole project. It works.\nCommitted and pushed\nYou opened your live site and looked at the published page"
+  },
+  {
+    "objectID": "assignments/assignment3.html#the-question",
+    "href": "assignments/assignment3.html#the-question",
+    "title": "Assignment 3: Verify the Claim",
+    "section": "The question",
+    "text": "The question\nIn this analysis, I will examine the 2018 WHYY article “New Census figures on Philly neighborhoods show inequality, high numbers of whites living in poverty.” The article claims that Eastwick, Philadelphia “showed the greatest poverty-rate increase of any community,” rising from 12 percent in the 2006–10 American Community Survey to 26 percent in the 2013–17 survey. To test this, I measure poverty rate using 5-year ACS B17001_002 (population with income in the past 12 months below the poverty level) and B17001_001 (population for whom poverty status is determined). The ACS5 publishes at the census tract level while the 1-year ACS are limited to geographies above roughly 65,000 people.\nSince the article does not specify which tracts went into the neighborhood of Eastwick’s analysis, I pulled poverty rate data for every census tract in Philadelphia County and checked where a tract-level increase on the scale the article reports (14%) falls relative to the rest of the city, instead of assuming my own boundaries for Eastwick. Thus, my analysis will focus on the magnitude of the claim and test whether an increase that large is exceptional somewhere in Philadelphia, but it cannot confirm that the tract producing the largest increase is actually in the article’s Eastwick. The two periods of 2006–10 and 2013–17 do not share underlying survey years which provides a better before and after comparison. Any statistically significant difference will reflect real change over time."
+  },
+  {
+    "objectID": "assignments/assignment3.html#pulling-data",
+    "href": "assignments/assignment3.html#pulling-data",
+    "title": "Assignment 3: Verify the Claim",
+    "section": "Pulling data",
+    "text": "Pulling data\n\n\nShow code\nget_phl_poverty &lt;- function(yr) {\n  get_acs(\n    geography = \"tract\",\n    state     = \"PA\",\n    county    = \"Philadelphia\",\n    variables = c(below_poverty = \"B17001_002\", total = \"B17001_001\"),\n    year      = yr,\n    survey    = \"acs5\",\n    output    = \"wide\"\n  ) %&gt;%\n    mutate(\n      share     = below_povertyE / totalE,\n      share_moe = moe_prop(below_povertyE, totalE, below_povertyM, totalM),\n      period    = paste0(yr - 4, \"-\", yr)\n    )\n}\n\nphl_poverty &lt;- bind_rows(\n  get_phl_poverty(2010),\n  get_phl_poverty(2017)\n)"
+  },
+  {
+    "objectID": "assignments/assignment3.html#part-2-check-for-missing-values",
+    "href": "assignments/assignment3.html#part-2-check-for-missing-values",
+    "title": "Assignment 3: Verify the Claim",
+    "section": "Part 2 Check for missing values",
+    "text": "Part 2 Check for missing values\n\n\n# A tibble: 15 × 4\n   GEOID       NAME                                                period totalE\n   &lt;chr&gt;       &lt;chr&gt;                                               &lt;chr&gt;   &lt;dbl&gt;\n 1 42101005000 Census Tract 50, Philadelphia County, Pennsylvania  2006-…      0\n 2 42101980300 Census Tract 9803, Philadelphia County, Pennsylvan… 2006-…      0\n 3 42101980400 Census Tract 9804, Philadelphia County, Pennsylvan… 2006-…      0\n 4 42101980500 Census Tract 9805, Philadelphia County, Pennsylvan… 2006-…      0\n 5 42101980700 Census Tract 9807, Philadelphia County, Pennsylvan… 2006-…      0\n 6 42101980800 Census Tract 9808, Philadelphia County, Pennsylvan… 2006-…      0\n 7 42101980900 Census Tract 9809, Philadelphia County, Pennsylvan… 2006-…      0\n 8 42101005000 Census Tract 50, Philadelphia County, Pennsylvania  2013-…      0\n 9 42101980300 Census Tract 9803, Philadelphia County, Pennsylvan… 2013-…      0\n10 42101980400 Census Tract 9804, Philadelphia County, Pennsylvan… 2013-…      0\n11 42101980500 Census Tract 9805, Philadelphia County, Pennsylvan… 2013-…      0\n12 42101980600 Census Tract 9806, Philadelphia County, Pennsylvan… 2013-…      0\n13 42101980700 Census Tract 9807, Philadelphia County, Pennsylvan… 2013-…      0\n14 42101980800 Census Tract 9808, Philadelphia County, Pennsylvan… 2013-…      0\n15 42101980900 Census Tract 9809, Philadelphia County, Pennsylvan… 2013-…      0\n\n\nEight of Philadelphia’s 384 census tracts produced an undefined poverty rate in at least one period since their total population for whom poverty status is determined was zero. Several are non-residential, such as tract 42101005000 (the Philadelphia Navy Yard) and tracts 42101980300–42101980900 (Philadelphia International Airport and the John Heinz National Wildlife Refuge). Tract 42101980600, had a defined rate in 2006–10 but not 2013–17, suggesting its population dropped to zero between the two periods. All eight were excluded, since the poverty rate would have no population to compute it from. To find this, I used is.na() to find these tracts to flag while also examining the tracts for more context."
+  },
+  {
+    "objectID": "assignments/assignment3.html#computing-change",
+    "href": "assignments/assignment3.html#computing-change",
+    "title": "Assignment 3: Verify the Claim",
+    "section": "Computing change",
+    "text": "Computing change\n\n\nShow code\nphl_wide &lt;- phl_poverty %&gt;%\n  select(GEOID, NAME, period, share, share_moe) %&gt;%\n  pivot_wider(names_from = period, values_from = c(share, share_moe))\n\nphl_tested &lt;- phl_wide %&gt;%\n  mutate(\n    change      = `share_2013-2017` - `share_2006-2010`,\n    se_1        = `share_moe_2006-2010` / 1.645,\n    se_2        = `share_moe_2013-2017` / 1.645,\n    se_diff     = sqrt(se_1^2 + se_2^2),\n    moe_diff    = se_diff * 1.645,\n    z           = change / se_diff,\n    significant = abs(z) &gt; 1.645\n  ) %&gt;%\n  filter(!is.na(significant)) \n\nphl_tested %&gt;% count(significant)\n\n\n# A tibble: 2 × 2\n  significant     n\n  &lt;lgl&gt;       &lt;int&gt;\n1 FALSE         313\n2 TRUE           63\n\n\nOf the 376 tracts with a defined poverty rate in both periods, only 17% (63 tracts) show a change large enough to be statistically distinguishable from zero at 90 percent confidence. The 83% have low apparent difference between the two periods that is small enough and could be sampling noise"
+  },
+  {
+    "objectID": "assignments/assignment3.html#create-a-reliability-table",
+    "href": "assignments/assignment3.html#create-a-reliability-table",
+    "title": "Assignment 3: Verify the Claim",
+    "section": "Create a reliability table",
+    "text": "Create a reliability table\n\n\n\n\n\n\n\n\nPoverty rate reliability, 15 least reliable tracts\n\n\nPhiladelphia, 2013–2017 ACS 5-year estimates\n\n\n\nTract\nRate (%)\nMOE (%)\nCV (%)\nReliability\n\n\n\n\n🔴\nCensus Tract 9891\n92.5\n220.4\n144.9\nUnreliable\n\n\n🔴\nCensus Tract 9800\n4.9\n7.0\n85.6\nUnreliable\n\n\n🔴\nCensus Tract 231\n0.8\n0.8\n66.7\nUnreliable\n\n\n🔴\nCensus Tract 256\n3.6\n3.9\n64.7\nUnreliable\n\n\n🔴\nCensus Tract 9801\n13.3\n13.4\n61.5\nUnreliable\n\n\n🔴\nCensus Tract 386\n3.0\n3.0\n59.3\nUnreliable\n\n\n🔴\nCensus Tract 9802\n11.5\n9.7\n51.4\nUnreliable\n\n\n🔴\nCensus Tract 340\n9.7\n7.7\n47.9\nUnreliable\n\n\n🔴\nCensus Tract 347.02\n2.0\n1.5\n47.1\nUnreliable\n\n\n🔴\nCensus Tract 10.02\n6.4\n4.9\n46.7\nUnreliable\n\n\n🔴\nCensus Tract 220\n1.3\n1.0\n45.4\nUnreliable\n\n\n🔴\nCensus Tract 363.03\n5.7\n4.1\n44.2\nUnreliable\n\n\n🔴\nCensus Tract 29\n17.6\n12.5\n43.4\nUnreliable\n\n\n🔴\nCensus Tract 341\n9.8\n6.8\n42.4\nUnreliable\n\n\n🔴\nCensus Tract 365.01\n12.6\n8.7\n42.2\nUnreliable\n\n\n\nReliability thresholds follow Jurjevich et al. (2018): CV &lt; 12% reliable, 12–40% somewhat reliable, &gt; 40% unreliable.\n\n\n\n\n\n\nCreating a reliability table"
+  },
+  {
+    "objectID": "assignments/assignment3.html#creating-a-change-chart",
+    "href": "assignments/assignment3.html#creating-a-change-chart",
+    "title": "Assignment 3: Verify the Claim",
+    "section": "Creating a change chart",
+    "text": "Creating a change chart\n\n\n\n\n\nLargest statistically significant poverty rate increases, Philadelphia tracts\n\n\n\n\nIn this chart, tracts are ranked by the absolute size of their change rather than by raw value, so that large increases and large decreases both surface in the same top 15 instead of decreases being pushed to the bottom of the list. The zero-line reference separates two real groups of bars. Changes at or above Eastwick’s reported 14-point figure aren’t isolated to one direction or one neighborhood. Several tracts clear that bar upward, several others move just as sharply downward."
+  },
+  {
+    "objectID": "assignments/assignment3.html#looking-at-poverty-rate-change-against-statistical-confidence-by-plotting-each-tracts-change-against-its-z-score",
+    "href": "assignments/assignment3.html#looking-at-poverty-rate-change-against-statistical-confidence-by-plotting-each-tracts-change-against-its-z-score",
+    "title": "Assignment 3: Verify the Claim",
+    "section": "Looking at poverty rate change against statistical confidence by plotting each tract’s change against its z-score",
+    "text": "Looking at poverty rate change against statistical confidence by plotting each tract’s change against its z-score\n\n\n\n\n\nPoverty rate change vs. statistical confidence across all Philadelphia tracts\n\n\n\n\nInstead of just the top 15, it shows all 376 tracts at once, plotting each one’s change against its z-score. It demonstrates how common statistically detectable change actually is citywide. Most points sit clustered near the middle, with a clear minority crossing the ±1.645 lines.\nVerdict: Not Supported The claim that Eastwick posted “the greatest poverty-rate increase of any community” in Philadelphia is not supported. Because Eastwick’s constituent tracts are not published, this analysis tested the claim’s magnitude across every valid Philadelphia tract instead to find that 63 tracts show a statistically significant change. Some of the largest raw changes, however, come from tracts too small to produce a reliable estimate.\nCensus Tract 9800 appeared to swing by nearly 79 percentage points, but its 2013–2017 estimate carries a coefficient of variation of 85.6 percent, which is more than double the 40 percent threshold Jurjevich et al. (2018) classify as unreliable. The number is likely an artifact of a small, unstable sample rather than a genuine change. An online search reveals that Census Tract 9800 primarily covers Fairmount Park west of the Schuylkill River. Census Tract 56’s 35.7-point increase is a closer call, with a coefficient of variation of 40.2 percent, and worth treating as borderline rather than dismissed outright the way Tract 9800’s figure should be.\n\n\n# A tibble: 2 × 4\n  NAME                                                change_pct cv_0610 cv_1317\n  &lt;chr&gt;                                                    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;\n1 Census Tract 56, Philadelphia County, Pennsylvania        35.7    40.2    20.9\n2 Census Tract 9800, Philadelphia County, Pennsylvan…      -78.8    16.3    85.6\n\n\nAfter removing every tract that fails this reliability standard in either period, 16 tracts still show a statistically significant increase at or above the 14% rise the article attributes to Eastwick, led by Census Tract 60 at 30.9 points. An increase the size of Eastwick’s claim is not unusual in Philadelphia, which directly contradicts the “greatest increase of any community” framing regardless of whether Eastwick’s own reported number is accurate.\n\n\n[1] 16\n\n\n# A tibble: 16 × 2\n   NAME                                                   change_pct\n   &lt;chr&gt;                                                       &lt;dbl&gt;\n 1 Census Tract 60, Philadelphia County, Pennsylvania           30.9\n 2 Census Tract 2, Philadelphia County, Pennsylvania            30.4\n 3 Census Tract 200, Philadelphia County, Pennsylvania          27.9\n 4 Census Tract 389, Philadelphia County, Pennsylvania          21.8\n 5 Census Tract 167.01, Philadelphia County, Pennsylvania       20.7\n 6 Census Tract 245, Philadelphia County, Pennsylvania          20.4\n 7 Census Tract 291, Philadelphia County, Pennsylvania          19.3\n 8 Census Tract 110, Philadelphia County, Pennsylvania          18.4\n 9 Census Tract 176.02, Philadelphia County, Pennsylvania       17.6\n10 Census Tract 290, Philadelphia County, Pennsylvania          17.4\n11 Census Tract 244, Philadelphia County, Pennsylvania          16.4\n12 Census Tract 301, Philadelphia County, Pennsylvania          15.9\n13 Census Tract 81.02, Philadelphia County, Pennsylvania        15.6\n14 Census Tract 330, Philadelphia County, Pennsylvania          15.2\n15 Census Tract 335, Philadelphia County, Pennsylvania          15.0\n16 Census Tract 307, Philadelphia County, Pennsylvania          14.2\n\n\nWhether Eastwick (as it can loosely be defined) actually rose from 12 to 26 percent cannot be determined here, since the article never specifies which tracts it aggregated.\nIf there was a rewrite of the article’s claim… Newly available Census data show poverty rising sharply in some parts of Philadelphia, though not evenly across the city. Of Philadelphia’s roughly 380 census tracts, about one in six saw a poverty rate change between 2006–10 and 2013–17 large enough to rule out ordinary survey noise. That likely means an increase on that scale is real and consistent with a broader citywide pattern, even though which specific tracts make up “Eastwick” isn’t public data. Its exact number can’t be independently confirmed. However, it is evident that multiple areas of the city are seeing statistically significant poverty increases."
+  },
+  {
+    "objectID": "weekly-notes/week-03.html",
+    "href": "weekly-notes/week-03.html",
+    "title": "Week 1: Getting Set Up",
+    "section": "",
+    "text": "Set up the portfolio workflow: made a repository from a template, cloned it with GitHub Desktop, edited files in RStudio, rendered with Quarto, and published to GitHub Pages."
+  },
+  {
+    "objectID": "weekly-notes/week-03.html#what-we-did",
+    "href": "weekly-notes/week-03.html#what-we-did",
+    "title": "Week 1: Getting Set Up",
+    "section": "",
+    "text": "Set up the portfolio workflow: made a repository from a template, cloned it with GitHub Desktop, edited files in RStudio, rendered with Quarto, and published to GitHub Pages."
+  },
+  {
+    "objectID": "weekly-notes/week-03.html#key-concepts",
+    "href": "weekly-notes/week-03.html#key-concepts",
+    "title": "Week 1: Getting Set Up",
+    "section": "Key Concepts",
+    "text": "Key Concepts\nThree places a file can live:\n\nMy computer — where I edit\nGitHub.com — where it’s stored\nMy live site — what the world sees\n\nThe loop: Edit → Save → Render → Commit → Push → wait → refresh"
+  },
+  {
+    "objectID": "weekly-notes/week-03.html#proving-r-works",
+    "href": "weekly-notes/week-03.html#proving-r-works",
+    "title": "Week 1: Getting Set Up",
+    "section": "Proving R Works",
+    "text": "Proving R Works\nThe chunk below runs when this page renders. If you can see a result underneath it on your published site, R and Quarto are talking to each other correctly.\n\nsessionInfo()$R.version$version.string\n\n[1] \"R version 4.6.1 (2026-06-24)\""
+  },
+  {
+    "objectID": "weekly-notes/week-03.html#reflection",
+    "href": "weekly-notes/week-03.html#reflection",
+    "title": "Week 1: Getting Set Up",
+    "section": "Reflection",
+    "text": "Reflection\n\nI’m excited to utilize R in my research projects and to build on my programming experience. I’m looking forward to seeing what tools and platforms emerge from our class at the end of the semester. I’m a little nervous about keeping up with the terminology and logic, but I’m sure it will just take practice. Forming study groups could be a good idea."
+  },
+  {
+    "objectID": "weekly-notes/week-03.html#what-ive-learned",
+    "href": "weekly-notes/week-03.html#what-ive-learned",
+    "title": "Week 1: Getting Set Up",
+    "section": "What I’ve Learned",
+    "text": "What I’ve Learned\nI’m learning to understand these file types as different pathways to the object I want to find. Understanding .qmd or .yml means that I’ll have a better idea of where to locate my target and how I should write my code around it."
+  },
+  {
+    "objectID": "weekly-notes/week-03.html#questions-i-still-have",
+    "href": "weekly-notes/week-03.html#questions-i-still-have",
+    "title": "Week 1: Getting Set Up",
+    "section": "Questions I Still Have",
+    "text": "Questions I Still Have\n\nWhat ways can I get creative with my web design?\nI’m interested in seeing how we code maps in."
   }
 ]
