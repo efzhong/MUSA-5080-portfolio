@@ -14,6 +14,7 @@ format:
 ## Setup
 
 ```{r}
+#| include: false
 library(tidyverse)
 library(tidycensus)
 library(gt)
@@ -56,11 +57,12 @@ phl_poverty <- bind_rows(
 ---
 ## Part 2 Check for missing values
 ```{r}
+#| echo: false
 phl_poverty %>%
   filter(is.na(share)) %>%
   select(GEOID, NAME, period, totalE)
 ```
-**Eight of Philadelphia's 384 census tracts produced an undefined poverty rate in at least one period since their total population for whom poverty status is determined was zero. Several are non-residential, such as tract 42101005000 (the Philadelphia Navy Yard) and tracts 42101980300–42101980900 (Philadelphia International Airport and the John Heinz National Wildlife Refuge). Tract 42101980600, had a defined rate in 2006–10 but not 2013–17, suggesting its population dropped to zero between the two periods. All eight were excluded, since the poverty rate would have no population to compute it from. To find this, I used is.na() to find these tracts to flag while also showing the tracts and totalE for more context.**
+**Eight of Philadelphia's 384 census tracts produced an undefined poverty rate in at least one period since their total population for whom poverty status is determined was zero. Several are non-residential, such as tract 42101005000 (the Philadelphia Navy Yard) and tracts 42101980300–42101980900 (Philadelphia International Airport and the John Heinz National Wildlife Refuge). Tract 42101980600, had a defined rate in 2006–10 but not 2013–17, suggesting its population dropped to zero between the two periods. All eight were excluded, since the poverty rate would have no population to compute it from. To find this, I used is.na() to find these tracts to flag while also examining the tracts for more context.**
 ---
 
 ## Computing change 
@@ -87,6 +89,7 @@ phl_tested %>% count(significant)
 
 ## Create a reliability table
 ```{r}
+#| echo: false
 #| fig-cap: "Creating a reliability table"
 phl_reliability <- phl_tested %>%
   mutate(
@@ -123,6 +126,7 @@ phl_reliability %>%
 ```
 ## Creating a change chart
 ```{r}
+#| echo: false
 #| fig-cap: "Largest statistically significant poverty rate increases, Philadelphia tracts"
 phl_tested %>%
   filter(significant) %>%
@@ -151,6 +155,7 @@ phl_tested %>%
 
 ## Looking at poverty rate change against statistical confidence by plotting each tract's change against its z-score
 ```{r}
+#| echo: false
 #| fig-cap: "Poverty rate change vs. statistical confidence across all Philadelphia tracts"
 phl_tested %>%
   mutate(change_pct = change * 100) %>%
@@ -170,6 +175,7 @@ phl_tested %>%
 
 **Census Tract 9800 appeared to swing by nearly 79 percentage points, but its 2013–2017 estimate carries a coefficient of variation of 85.6 percent, which is more than double the 40 percent threshold Jurjevich et al. (2018) classify as unreliable. The number is likely an artifact of a small, unstable sample rather than a genuine change. An online search reveals that Census Tract 9800 primarily covers Fairmount Park west of the Schuylkill River. Census Tract 56's 35.7-point increase is a closer call, with a coefficient of variation of 40.2 percent, and worth treating as borderline rather than dismissed outright the way Tract 9800's figure should be.**
 ```{r}
+#| echo: false
 phl_tested %>%
   filter(str_detect(NAME, "Tract 56,|Tract 9800,")) %>%
   mutate(
@@ -182,6 +188,7 @@ phl_tested %>%
 
 **After removing every tract that fails this reliability standard in either period, 16 tracts still show a statistically significant increase at or above the 14% rise the article attributes to Eastwick, led by Census Tract 60 at 30.9 points. An increase the size of Eastwick's claim is not unusual in Philadelphia, which directly contradicts the "greatest increase of any community" framing regardless of whether Eastwick's own reported number is accurate.**
 ```{r}
+#| echo: false
 phl_reliable_large_change <- phl_tested %>%
   mutate(
     change_pct = change * 100,
