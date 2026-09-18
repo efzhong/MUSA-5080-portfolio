@@ -1,0 +1,204 @@
+---
+title: "Assignment 3: Verify the Claim"
+subtitle: "Testing a published claim about neighborhood change against the data behind it"
+author: "Evelyn Zhong"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-summary: "Show code"
+    embed-resources: true
+---
+
+## Setup
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(gt)
+```
+
+---
+
+## The question
+
+**In this analysis, I will examine the 2018 WHYY article "New Census figures on Philly neighborhoods show inequality, high numbers of whites living in poverty." The article claims that Eastwick, Philadelphia "showed the greatest poverty-rate increase of any community," rising from 12 percent in the 2006–10 American Community Survey to 26 percent in the 2013–17 survey. To test this, I measure poverty rate using 5-year ACS B17001_002 (population with income in the past 12 months below the poverty level) and B17001_001 (population for whom poverty status is determined). The ACS5 publishes at the census tract level while the 1-year ACS are limited to geographies above roughly 65,000 people.**
+
+**Since the article does not specify which tracts went into the neighborhood of Eastwick's analysis, I pulled poverty rate data for every census tract in Philadelphia County and checked where a tract-level increase on the scale the article reports (14%) falls relative to the rest of the city, instead of assuming my own boundaries for Eastwick. Thus, my analysis will focus on the magnitude of the claim and test whether an increase that large is exceptional somewhere in Philadelphia, but it cannot confirm that the tract producing the largest increase is actually in the article's Eastwick. The two periods of 2006–10 and 2013–17 do not share underlying survey years which provides a better before and after comparison. Any statistically significant difference will reflect real change over time.**
+
+---
+
+## Pulling data
+```{r}
+get_phl_poverty <- function(yr) {
+  get_acs(
+    geography = "tract",
+    state     = "PA",
+    county    = "Philadelphia",
+    variables = c(below_poverty = "B17001_002", total = "B17001_001"),
+    year      = yr,
+    survey    = "acs5",
+    output    = "wide"
+  ) %>%
+    mutate(
+      share     = below_povertyE / totalE,
+      share_moe = moe_prop(below_povertyE, totalE, below_povertyM, totalM),
+      period    = paste0(yr - 4, "-", yr)
+    )
+}
+
+phl_poverty <- bind_rows(
+  get_phl_poverty(2010),
+  get_phl_poverty(2017)
+)
+```
+---
+## Part 2 Check for missing values
+```{r}
+phl_poverty %>%
+  filter(is.na(share)) %>%
+  select(GEOID, NAME, period, totalE)
+```
+**Eight of Philadelphia's 384 census tracts produced an undefined poverty rate in at least one period since their total population for whom poverty status is determined was zero. Several are non-residential, such as tract 42101005000 (the Philadelphia Navy Yard) and tracts 42101980300–42101980900 (Philadelphia International Airport and the John Heinz National Wildlife Refuge). Tract 42101980600, had a defined rate in 2006–10 but not 2013–17, suggesting its population dropped to zero between the two periods. All eight were excluded, since the poverty rate would have no population to compute it from. To find this, I used is.na() to find these tracts to flag while also showing the tracts and totalE for more context.**
+---
+
+## Computing change 
+```{r}
+phl_wide <- phl_poverty %>%
+  select(GEOID, NAME, period, share, share_moe) %>%
+  pivot_wider(names_from = period, values_from = c(share, share_moe))
+
+phl_tested <- phl_wide %>%
+  mutate(
+    change      = `share_2013-2017` - `share_2006-2010`,
+    se_1        = `share_moe_2006-2010` / 1.645,
+    se_2        = `share_moe_2013-2017` / 1.645,
+    se_diff     = sqrt(se_1^2 + se_2^2),
+    moe_diff    = se_diff * 1.645,
+    z           = change / se_diff,
+    significant = abs(z) > 1.645
+  ) %>%
+  filter(!is.na(significant)) 
+
+phl_tested %>% count(significant)
+```
+**Of the 376 tracts with a defined poverty rate in both periods, only 17% (63 tracts) show a change large enough to be statistically distinguishable from zero at 90 percent confidence. The 83% have low apparent difference between the two periods that is small enough and could be sampling noise**
+
+## Create a reliability table
+```{r}
+#| fig-cap: "Creating a reliability table"
+phl_reliability <- phl_tested %>%
+  mutate(
+    rate_pct = `share_2013-2017` * 100,      
+    moe_pct  = `share_moe_2013-2017` * 100,
+    cv       = (`share_moe_2013-2017` / 1.645) / `share_2013-2017` * 100,
+    dot      = case_when(cv < 12 ~ "🟢", cv <= 40 ~ "🟡", TRUE ~ "🔴"),
+    flag     = case_when(cv < 12 ~ "Reliable", cv <= 40 ~ "Somewhat reliable", TRUE ~ "Unreliable"),
+    NAME     = str_remove(NAME, ", Philadelphia County, Pennsylvania")
+  ) %>%
+  arrange(desc(cv)) %>%
+  slice_head(n = 15) %>%      # reduce to 15 most unreliable so I can make a cleaner, less crowded table
+  select(dot, NAME, rate_pct, moe_pct, cv, flag)
+
+phl_reliability %>%
+  gt() %>%
+  fmt_number(columns = c(rate_pct, moe_pct, cv), decimals = 1) %>%
+  cols_label(
+    dot      = "",
+    NAME     = "Tract",
+    rate_pct = "Rate (%)",
+    moe_pct  = "MOE (%)",
+    cv       = "CV (%)",
+    flag     = "Reliability"
+  ) %>%
+  cols_align(align = "center", columns = dot) %>%
+  tab_header(
+    title    = "Poverty rate reliability, 15 least reliable tracts",
+    subtitle = "Philadelphia, 2013–2017 ACS 5-year estimates"
+  ) %>%
+  tab_source_note(
+    "Reliability thresholds follow Jurjevich et al. (2018): CV < 12% reliable, 12–40% somewhat reliable, > 40% unreliable."
+  )
+```
+## Creating a change chart
+```{r}
+#| fig-cap: "Largest statistically significant poverty rate increases, Philadelphia tracts"
+phl_tested %>%
+  filter(significant) %>%
+  mutate(
+    NAME         = str_remove(NAME, ", Philadelphia County, Pennsylvania"),
+    change_pct   = change * 100,
+    moe_diff_pct = moe_diff * 100,
+    cv_0610      = (`share_moe_2006-2010` / 1.645) / `share_2006-2010` * 100,
+    cv_1317      = (`share_moe_2013-2017` / 1.645) / `share_2013-2017` * 100
+  ) %>%
+  filter(cv_0610 <= 40, cv_1317 <= 40) %>%   # drop unreliable tracts per Jurjevich thresholds
+  arrange(desc(abs(change_pct))) %>%
+  slice_head(n = 15) %>%
+  ggplot(aes(x = reorder(NAME, change_pct), y = change_pct)) +
+  geom_col(aes(fill = change_pct > 0)) +
+  geom_errorbar(aes(ymin = change_pct - moe_diff_pct, ymax = change_pct + moe_diff_pct), width = 0.3) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  coord_flip() +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Largest statistically significant poverty rate increases for Philadelphia",
+       subtitle = "Excludes tracts unreliable (CV > 40%) in either period from 2006-2010 ACS & 2013-2017 ACS",
+       x = NULL, y = "Change in poverty rate (percentage points)", fill = "Increase")
+```
+**In this chart, tracts are ranked by the absolute size of their change rather than by raw value, so that large increases and large decreases both surface in the same top 15 instead of decreases being pushed to the bottom of the list. The zero-line reference separates two real groups of bars. Changes at or above Eastwick's reported 14-point figure aren't isolated to one direction or one neighborhood. Several tracts clear that bar upward, several others move just as sharply downward.**
+
+## Looking at poverty rate change against statistical confidence by plotting each tract's change against its z-score
+```{r}
+#| fig-cap: "Poverty rate change vs. statistical confidence across all Philadelphia tracts"
+phl_tested %>%
+  mutate(change_pct = change * 100) %>%
+  ggplot(aes(x = change_pct, y = z)) +
+  geom_point(color = "steelblue") +
+  geom_hline(yintercept = 1.645, linetype = "dashed") +
+  geom_hline(yintercept = -1.645, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Poverty rate change vs. statistical confidence across all Philadelphia tracts",
+     subtitle = "2006–2010 vs. 2013–2017 ACS 5, dashed lines are ±1.645 threshold for 90% confidence",
+     x = "Change in poverty rate (percentage points)", y = "z-score")
+```
+**Instead of just the top 15, it shows all 376 tracts at once, plotting each one's change against its z-score. It demonstrates how common statistically detectable change actually is citywide. Most points sit clustered near the middle, with a clear minority crossing the ±1.645 lines.**
+---
+**Verdict: Not Supported**
+**The claim that Eastwick posted "the greatest poverty-rate increase of any community" in Philadelphia is not supported. Because Eastwick's constituent tracts are not published, this analysis tested the claim's magnitude across every valid Philadelphia tract instead to find that 63 tracts show a statistically significant change. Some of the largest raw changes, however, come from tracts too small to produce a reliable estimate.**
+
+**Census Tract 9800 appeared to swing by nearly 79 percentage points, but its 2013–2017 estimate carries a coefficient of variation of 85.6 percent, which is more than double the 40 percent threshold Jurjevich et al. (2018) classify as unreliable. The number is likely an artifact of a small, unstable sample rather than a genuine change. An online search reveals that Census Tract 9800 primarily covers Fairmount Park west of the Schuylkill River. Census Tract 56's 35.7-point increase is a closer call, with a coefficient of variation of 40.2 percent, and worth treating as borderline rather than dismissed outright the way Tract 9800's figure should be.**
+```{r}
+phl_tested %>%
+  filter(str_detect(NAME, "Tract 56,|Tract 9800,")) %>%
+  mutate(
+    change_pct = change * 100,
+    cv_0610 = (`share_moe_2006-2010` / 1.645) / `share_2006-2010` * 100,
+    cv_1317 = (`share_moe_2013-2017` / 1.645) / `share_2013-2017` * 100
+  ) %>%
+  select(NAME, change_pct, cv_0610, cv_1317)
+```
+
+**After removing every tract that fails this reliability standard in either period, 16 tracts still show a statistically significant increase at or above the 14% rise the article attributes to Eastwick, led by Census Tract 60 at 30.9 points. An increase the size of Eastwick's claim is not unusual in Philadelphia, which directly contradicts the "greatest increase of any community" framing regardless of whether Eastwick's own reported number is accurate.**
+```{r}
+phl_reliable_large_change <- phl_tested %>%
+  mutate(
+    change_pct = change * 100,
+    cv_0610 = (`share_moe_2006-2010` / 1.645) / `share_2006-2010` * 100,
+    cv_1317 = (`share_moe_2013-2017` / 1.645) / `share_2013-2017` * 100
+  ) %>%
+  filter(significant, cv_0610 <= 40, cv_1317 <= 40, change_pct >= 14) %>%
+  arrange(desc(change_pct))
+
+nrow(phl_reliable_large_change)   # count cited in Part 3 as "16 tracts"
+
+phl_reliable_large_change %>%
+  select(NAME, change_pct) %>%
+  slice_head(n = 16)   # confirms Census Tract 60 leads, at 30.9 points
+```
+**Whether Eastwick (as it can loosely be defined) actually rose from 12 to 26 percent cannot be determined here, since the article never specifies which tracts it aggregated.**
+
+
+**If there was a rewrite of the article's claim...**
+**Newly available Census data show poverty rising sharply in some parts of Philadelphia, though not evenly across the city. Of Philadelphia's roughly 380 census tracts, about one in six saw a poverty rate change between 2006–10 and 2013–17 large enough to rule out ordinary survey noise. That likely means an increase on that scale is real and consistent with a broader citywide pattern, even though which specific tracts make up "Eastwick" isn't public data. Its exact number can't be independently confirmed. However, it is evident that multiple areas of the city are seeing statistically significant poverty increases.**

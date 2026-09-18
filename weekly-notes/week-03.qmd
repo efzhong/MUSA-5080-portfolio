@@ -1,0 +1,47 @@
+---
+title: "Week 1: Getting Set Up"
+description: "First impressions, and getting the workflow running."
+date: 2026-08-28
+---
+
+## What We Did
+
+<!-- CHANGE THIS: replace with your own notes -->
+
+Set up the portfolio workflow: made a repository from a template, cloned it with
+GitHub Desktop, edited files in RStudio, rendered with Quarto, and published to
+GitHub Pages.
+
+## Key Concepts
+
+Three places a file can live:
+
+1. **My computer** — where I edit
+2. **GitHub.com** — where it's stored
+3. **My live site** — what the world sees
+
+The loop: **Edit → Save → Render → Commit → Push → wait → refresh**
+
+## Proving R Works
+
+The chunk below runs when this page renders. If you can see a result underneath
+it on your published site, R and Quarto are talking to each other correctly.
+
+```{r}
+sessionInfo()$R.version$version.string
+```
+
+## Reflection
+
+<!-- CHANGE THIS: 3-4 sentences -->
+
+I'm excited to utilize R in my research projects and to build on my programming experience. I'm looking forward to seeing what tools and platforms emerge from our class at the end of the semester. I'm a little nervous about keeping up with the terminology and logic, but I'm sure it will just take practice. Forming study groups could be a good idea. 
+
+## What I've Learned 
+
+I'm learning to understand these file types as different pathways to the object I want to find. Understanding .qmd or .yml means that I'll have a better idea of where to locate my target and how I should write my code around it. 
+
+## Questions I Still Have
+
+- What ways can I get creative with my web design?
+- I'm interested in seeing how we code maps in. 
